@@ -173,7 +173,7 @@ class StreamDeck(Base):
             handler(obj=obj)
 
     @log_errors
-    def run(self) -> None:
+    def run(self, dispatcher=None) -> None:
         logger.debug(f"Plugin has been launched")
         parser = argparse.ArgumentParser(description='StreamDeck Plugin')
         parser.add_argument('-port', dest='port', type=int, help="Port", required=True)
@@ -205,7 +205,7 @@ class StreamDeck(Base):
             on_open=self.ws_on_open,
         )
         self.__init_actions()
-        self.ws.run_forever()
+        self.ws.run_forever(dispatcher=dispatcher)
 
     def __init_actions(self) -> None:
         if self.actions_list is None:
