@@ -14,7 +14,9 @@ from .event_routings import (
     EVENT_ROUTING_MAP,
     PLUGIN_EVENT_ROUTING_MAP,
 )
-from .logger import logger, init_logger, log_errors
+from .logger import init_logger, log_errors
+logger = logging.getLogger(__name__)
+
 from .mixins import (
     PluginEventHandlersMixin,
     ActionEventHandlersMixin,
@@ -164,7 +166,7 @@ class StreamDeck(Base):
 
     @log_errors
     def route_plugin_event_in_actions_handler(
-            self,
+            self, 
             event_routing: EventRoutingObj,
             obj: pydantic.BaseModel,
     ) -> None:
@@ -176,8 +178,7 @@ class StreamDeck(Base):
                 return
             handler(obj=obj)
 
-    @log_errors
-    def run(self) -> None:
+    def run(self, dispatcher=None) -> None:
         logger.debug(f"Plugin has been launched")
         parser = argparse.ArgumentParser(description='StreamDeck Plugin')
         parser.add_argument('-port', dest='port', type=int, help="Port", required=True)
@@ -207,7 +208,7 @@ class StreamDeck(Base):
             on_open=self.ws_on_open,
         )
         self.__init_actions()
-        self.ws.run_forever()
+        self.ws.run_forever(dispatcher=dispatcher)
 
     def __init_actions(self) -> None:
         if self.actions_list is None:
