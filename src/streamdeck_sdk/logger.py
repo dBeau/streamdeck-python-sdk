@@ -5,7 +5,7 @@ from pathlib import Path
 
 from decohints import decohints
 
-logger: logging.Logger = logging.getLogger('default')
+logger: logging.Logger = logging.getLogger(__name__)
 
 
 def init_logger(
