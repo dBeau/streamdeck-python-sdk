@@ -9,7 +9,10 @@ with open(REQUIREMENTS_FILE, "r") as f:
     requirements = f.read().splitlines()
 
 with open(README, "r") as file:
-    long_description = file.read()
+    try:
+        long_description = file.read()
+    except:
+        long_description = "Reading README failed"
 
 setuptools.setup(
     name="streamdeck_sdk",
