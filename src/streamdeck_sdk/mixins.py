@@ -5,8 +5,7 @@ import pydantic
 import websocket
 from websocket import ABNF
 
-from . import events_received_objs
-from . import events_sent_objs
+from .sd_objs import events_received_objs, events_sent_objs
 from .logger import log_errors
 
 
@@ -26,7 +25,11 @@ class SendMixin:
         self.ws.send(data, opcode)
 
 
-class PluginEventsSentMixin(SendMixin):
+class BaseEventSendMixin(SendMixin):
+    pass
+
+
+class PluginEventsSendMixin(BaseEventSendMixin):
     plugin_uuid: str
 
     def set_global_settings(self, payload: dict) -> None:
@@ -73,7 +76,7 @@ class PluginEventsSentMixin(SendMixin):
         self.send(message)
 
 
-class ActionEventsSentMixin(SendMixin):
+class ActionEventsSendMixin(BaseEventSendMixin):
     def set_settings(
             self,
             context: str,
@@ -185,7 +188,11 @@ class ActionEventsSentMixin(SendMixin):
         self.send(message)
 
 
-class ActionEventHandlersMixin:
+class BaseEventHandlerMixin:
+    pass
+
+
+class ActionEventHandlersMixin(BaseEventHandlerMixin):
     def on_did_receive_settings(self, obj: events_received_objs.DidReceiveSettings) -> None:
         pass
 
@@ -196,6 +203,12 @@ class ActionEventHandlersMixin:
         pass
 
     def on_touch_tap(self, obj: events_received_objs.TouchTap) -> None:
+        pass
+
+    def on_dial_down(self, obj: events_received_objs.DialDown) -> None:
+        pass
+
+    def on_dial_up(self, obj: events_received_objs.DialUp) -> None:
         pass
 
     def on_dial_press(self, obj: events_received_objs.DialPress) -> None:
@@ -226,7 +239,7 @@ class ActionEventHandlersMixin:
         pass
 
 
-class PluginEventHandlersMixin:
+class PluginEventHandlersMixin(BaseEventHandlerMixin):
     def on_did_receive_global_settings(self, obj: events_received_objs.DidReceiveGlobalSettings) -> None:
         pass
 
