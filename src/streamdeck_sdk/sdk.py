@@ -33,13 +33,17 @@ logger = logging.getLogger(__name__)
 class Action(Base):
     UUID: str  # Required
 
-    def __init__(self):
-        self.plugin_uuid: Optional[str] = None
-        self.ws: Optional[websocket.WebSocketApp] = None
-        self.info: Optional[registration_objs.Info] = None
+    plugin_uuid: Optional[str] = None
+    ws: Optional[websocket.WebSocketApp] = None
+    info: Optional[registration_objs.Info] = None
+
+    def __init__(self, context):
+        self.context: str = context
 
 
 class StreamDeck(Base):
+    ws: Optional[websocket.WebSocketApp] = None
+
     def __init__(
             self,
             actions: Optional[List[Action]] = None,
@@ -59,9 +63,10 @@ class StreamDeck(Base):
             )
 
         self.actions_list = actions
-        self.actions: Dict[str, Action] = {}
+        #XXX fill in the types
+        self.actions = {}
+        self.action_instances = {}
 
-        self.ws: Optional[websocket.WebSocketApp] = None
         self.port: Optional[int] = None
         self.plugin_uuid: Optional[str] = None
         self.register_event: Optional[str] = None
@@ -146,13 +151,23 @@ class StreamDeck(Base):
             logger.error(str(err), exc_info=True)
             return
 
-        action_obj = self.actions.get(action_uuid)
-        if action_obj is None:
+        action_class = self.actions.get(action_uuid)
+        if action_class is None:
             logger.warning(f"{action_uuid=} not registered")
             return
 
         try:
-            handler: Callable = getattr(action_obj, event_routing.handler_name)
+            context = obj.context
+        except AttributeError as err:
+            logger.error(str(err), exec_info=True)
+
+        action_instance = self.action_instances.get(context, None)
+        if not action_instance:
+            action_instance = action_class(context)
+            self.action_instances[context] = action_instance
+
+        try:
+            handler: Callable = getattr(action_instance, event_routing.handler_name)
         except AttributeError as err:
             logger.error(f"Handler missing: {str(err)}", exc_info=True)
             return
@@ -196,7 +211,9 @@ class StreamDeck(Base):
 
         self.registration_dict = {"event": self.register_event, "uuid": self.plugin_uuid}
         logger.debug(f"{self.registration_dict=}")
-        self.ws = websocket.WebSocketApp(
+        # XXX need to tease about the base classes here... Action wants send to be classmethod
+        # XXX StreamDeck, not so much
+        StreamDeck.ws = websocket.WebSocketApp(
             'ws://localhost:' + str(self.port),
             on_message=self.ws_on_message,
             on_error=self.ws_on_error,
@@ -214,7 +231,7 @@ class StreamDeck(Base):
             try:
                 action_uuid = action.UUID
             except AttributeError:
-                action_class = str(action.__class__)
+                action_class = str(action)
                 message = f"{action_class} must have attribute UUID"
                 logger.error(message, exc_info=True)
                 raise AttributeError(message)

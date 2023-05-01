@@ -12,7 +12,8 @@ from .logger import log_errors
 class SendMixin:
     ws: websocket.WebSocketApp
 
-    @log_errors
+#    @log_errors
+    @classmethod
     def send(
             self,
             data: Union[pydantic.BaseModel, dict, str],
@@ -32,6 +33,7 @@ class BaseEventSendMixin(SendMixin):
 class PluginEventsSendMixin(BaseEventSendMixin):
     plugin_uuid: str
 
+    @classmethod
     def set_global_settings(self, payload: dict) -> None:
         message = events_sent_objs.SetGlobalSettings(
             context=self.plugin_uuid,
@@ -39,12 +41,14 @@ class PluginEventsSendMixin(BaseEventSendMixin):
         )
         self.send(message)
 
+    @classmethod
     def get_global_settings(self) -> None:
         message = events_sent_objs.GetGlobalSettings(
             context=self.plugin_uuid,
         )
         self.send(message)
 
+    @classmethod
     def open_url(self, url: str) -> None:
         message = events_sent_objs.OpenUrl(
             payload=events_sent_objs.OpenUrlPayload(
@@ -53,6 +57,7 @@ class PluginEventsSendMixin(BaseEventSendMixin):
         )
         self.send(message)
 
+    @classmethod
     def log_message(self, message: str) -> None:
         message = events_sent_objs.LogMessage(
             payload=events_sent_objs.LogMessagePayload(
@@ -61,6 +66,7 @@ class PluginEventsSendMixin(BaseEventSendMixin):
         )
         self.send(message)
 
+    @classmethod
     def switch_to_profile(
             self,
             device: str,
@@ -79,64 +85,58 @@ class PluginEventsSendMixin(BaseEventSendMixin):
 class ActionEventsSendMixin(BaseEventSendMixin):
     def set_settings(
             self,
-            context: str,
             payload: dict,
     ) -> None:
         message = events_sent_objs.SetSettings(
-            context=context,
+            context=self.context,
             payload=payload,
         )
         self.send(message)
 
     def get_settings(
             self,
-            context: str,
     ) -> None:
         message = events_sent_objs.GetSettings(
-            context=context,
+            context=self.context,
         )
         self.send(message)
 
     def set_title(
             self,
-            context: str,
             payload: events_sent_objs.SetTitlePayload,
     ) -> None:
         message = events_sent_objs.SetTitle(
-            context=context,
+            context=self.context,
             payload=payload,
         )
         self.send(message)
 
     def set_image(
             self,
-            context: str,
             payload: events_sent_objs.SetImagePayload,
     ) -> None:
         message = events_sent_objs.SetImage(
-            context=context,
+            context=self.context,
             payload=payload,
         )
         self.send(message)
 
     def set_feedback(
             self,
-            context: str,
             payload: dict,
     ) -> None:
         message = events_sent_objs.SetFeedback(
-            context=context,
+            context=self.context,
             payload=payload,
         )
         self.send(message)
 
     def set_feedback_layout(
             self,
-            context: str,
             layout: str,
     ) -> None:
         message = events_sent_objs.SetFeedbackLayout(
-            context=context,
+            context=self.context,
             payload=events_sent_objs.SetFeedbackLayoutPayload(
                 layout=layout
             ),
@@ -145,29 +145,26 @@ class ActionEventsSendMixin(BaseEventSendMixin):
 
     def show_alert(
             self,
-            context: str,
     ) -> None:
         message = events_sent_objs.ShowAlert(
-            context=context,
+            context=self.context,
         )
         self.send(message)
 
     def show_ok(
             self,
-            context: str,
     ) -> None:
         message = events_sent_objs.ShowOk(
-            context=context,
+            context=self.context,
         )
         self.send(message)
 
     def set_state(
             self,
-            context: str,
             state: int,
     ) -> None:
         message = events_sent_objs.SetState(
-            context=context,
+            context=self.context,
             payload=events_sent_objs.SetStatePayload(
                 state=state
             )
@@ -240,20 +237,26 @@ class ActionEventHandlersMixin(BaseEventHandlerMixin):
 
 
 class PluginEventHandlersMixin(BaseEventHandlerMixin):
+    @classmethod
     def on_did_receive_global_settings(self, obj: events_received_objs.DidReceiveGlobalSettings) -> None:
         pass
 
+    @classmethod
     def on_device_did_connect(self, obj: events_received_objs.DeviceDidConnect) -> None:
         pass
 
+    @classmethod
     def on_device_did_disconnect(self, obj: events_received_objs.DeviceDidDisconnect) -> None:
         pass
 
+    @classmethod
     def on_application_did_launch(self, obj: events_received_objs.ApplicationDidLaunch) -> None:
         pass
 
+    @classmethod
     def on_application_did_terminate(self, obj: events_received_objs.ApplicationDidTerminate) -> None:
         pass
 
+    @classmethod
     def on_system_did_wake_up(self, obj: events_received_objs.SystemDidWakeUp) -> None:
         pass

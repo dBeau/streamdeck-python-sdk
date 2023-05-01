@@ -30,7 +30,8 @@ def fill_routing_map(
         attr: str
         if not attr.startswith("on_"):
             continue
-        assert callable(value)
+        # XXX fails on class methods
+        #assert callable(value)
 
         handler_type_hints = get_type_hints(value)
         obj_type = handler_type_hints["obj"]
