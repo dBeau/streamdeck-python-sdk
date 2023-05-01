@@ -173,13 +173,11 @@ class ActionEventsSendMixin(BaseEventSendMixin):
 
     def send_to_property_inspector(
             self,
-            action: str,
-            context: str,
             payload: dict,
     ):
         message = events_sent_objs.SendToPropertyInspector(
-            action=action,
-            context=context,
+            action=self.UUID,
+            context=self.context,
             payload=payload
         )
         self.send(message)
