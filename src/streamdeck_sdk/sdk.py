@@ -171,7 +171,10 @@ class StreamDeck(Base):
         except AttributeError as err:
             logger.error(f"Handler missing: {str(err)}", exc_info=True)
             return
-        handler(obj=obj)
+        try:
+            handler(obj=obj)
+        except Exception as exc:
+            logger.error(f"bad handler: {handler=}", exc_info=True)
 
     @log_errors
     def route_plugin_event_in_action_handlers(
@@ -185,7 +188,11 @@ class StreamDeck(Base):
             except AttributeError as err:
                 logger.error(f"Handler missing: {str(err)}", exc_info=True)
                 return
-            handler(obj=obj)
+            try:
+                handler(obj=obj)
+            except Exception as exc:
+                logger.error(f"bad handler: {handler=}", exc_info=True)
+
 
     def run(self, dispatcher=None) -> None:
         logger.debug(f"Plugin has been launched")
