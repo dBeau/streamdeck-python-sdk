@@ -37,12 +37,15 @@ class Action(Base):
     ws: Optional[websocket.WebSocketApp] = None
     info: Optional[registration_objs.Info] = None
 
+    plugin = None
+
     def __init__(self, context):
         self.context: str = context
 
 
 class StreamDeck(Base):
     ws: Optional[websocket.WebSocketApp] = None
+    plugin_uuid: Optional[str] = None
 
     def __init__(
             self,
@@ -68,7 +71,6 @@ class StreamDeck(Base):
         self.action_instances = {}
 
         self.port: Optional[int] = None
-        self.plugin_uuid: Optional[str] = None
         self.register_event: Optional[str] = None
         self.info: Optional[registration_objs.Info] = None
 
@@ -207,7 +209,7 @@ class StreamDeck(Base):
 
         self.port: int = args.port
         logger.debug(f"{self.port=}")
-        self.plugin_uuid: str = args.pluginUUID
+        StreamDeck.plugin_uuid: str = args.pluginUUID
         logger.debug(f"{self.plugin_uuid=}")
         self.register_event: str = args.registerEvent
         logger.debug(f"{self.register_event=}")
@@ -218,7 +220,7 @@ class StreamDeck(Base):
 
         self.registration_dict = {"event": self.register_event, "uuid": self.plugin_uuid}
         logger.debug(f"{self.registration_dict=}")
-        # XXX need to tease about the base classes here... Action wants send to be classmethod
+        # XXX need to tease apart the base classes here... Action wants send to be classmethod
         # XXX StreamDeck, not so much
         StreamDeck.ws = websocket.WebSocketApp(
             'ws://localhost:' + str(self.port),
@@ -229,6 +231,7 @@ class StreamDeck(Base):
         )
         self.__init_actions()
         self.ws.run_forever(dispatcher=dispatcher)
+
 
     def __init_actions(self) -> None:
         if self.actions_list is None:
@@ -242,7 +245,8 @@ class StreamDeck(Base):
                 message = f"{action_class} must have attribute UUID"
                 logger.error(message, exc_info=True)
                 raise AttributeError(message)
-            action.ws = self.ws
+            action.plugin = self
             action.plugin_uuid = self.plugin_uuid
             action.info = self.info
+            action.ws = self.ws
             self.actions[action_uuid] = action
