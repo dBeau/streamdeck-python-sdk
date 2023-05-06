@@ -162,6 +162,7 @@ class StreamDeck(Base):
             context = obj.context
         except AttributeError as err:
             logger.error(str(err), exec_info=True)
+            raise
 
         action_instance = self.action_instances.get(context, None)
         if not action_instance:
